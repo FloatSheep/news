@@ -10,10 +10,6 @@ setTimeout(() => {
     first_xhr();
 }, 1000);
 
-function report_bug () {
-    window.open('https://github.com/zkeq/news/issues/new?assignees=zkeq&labels=bug%2Capi&template=main.yaml&title=%5B%E6%8E%A5%E5%8F%A3%E5%A4%B1%E6%95%88%5D%3A+');
-}
-
 function handleError (e) { 
     // 如果返回的是知乎的错误，则提示知乎源的错误
     if (origin === 'zhihu') {
@@ -25,21 +21,19 @@ function handleError (e) {
                     index = 0;
                 }
                 get_day_news(index = (index - 1), origin);
-                bing_load(index);
-                Notiflix.Notify.failure(`当天新闻不存在，尝试获取前一天 \uD83D\uDE1E ${e.data.title}`);
+                console.log(`当天新闻不存在，尝试获取前一天 \uD83D\uDE1E ${e.data.title}`);
             } else {
-                Notiflix.Notify.failure(`当天新闻不存在，尝试获取后一天 \uD83D\uDE1E ${e.data.title}`);
+                console.log(`当天新闻不存在，尝试获取后一天 \uD83D\uDE1E ${e.data.title}`);
                 get_day_news(index = (index + 1), origin);
-                bing_load(index);
             }
         } else {
             NProgress.done();
-            Notiflix.Notify.failure(`An error occurred \uD83D\uDE1E ${e['data']['title']}`, ()=>report_bug());
+            console.log(`An error occurred \uD83D\uDE1E ${e['data']['title']}`);
         }
     }
     else {
         NProgress.done();
-        Notiflix.Notify.failure(`An error occurred \uD83D\uDE1E ${e['data']['title']}`, ()=>report_bug());
+        console.log(`An error occurred \uD83D\uDE1E ${e['data']['title']}`);
     }
 }
 
@@ -47,34 +41,16 @@ function handleError_zhihu (e) {
     NProgress.done();
     if (direction === 'before') {
         get_day_news(index, origin);
-        bing_load(index);
-        Notiflix.Notify.failure(`当天新闻不存在，尝试获取前一天 \uD83D\uDE1E ${e}`);
+        console.log(`当天新闻不存在，尝试获取前一天 \uD83D\uDE1E ${e}`);
     } else {
-        Notiflix.Notify.failure(`当天新闻不存在，尝试获取后一天 \uD83D\uDE1E ${e}`);
+        console.log(`当天新闻不存在，尝试获取后一天 \uD83D\uDE1E ${e}`);
         get_day_news(index, origin);
-        bing_load(index);
     }
 }
 
 function handleError_163 (e) { 
     NProgress.done();
-    Notiflix.Notify.failure(`网易新闻源：An error occurred \uD83D\uDE1E ${e}`, ()=>report_bug());
-}
-
-function get_bing_into_local_storage () {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', 'https://raw.onmicrosoft.cn/Bing-Wallpaper-Action/main/data/zh-CN_all.json');
-    xhr.onload = function () {
-        if (xhr.status === 200) {
-            const data = JSON.parse(xhr.responseText);
-            localStorage.setItem('bing', JSON.stringify(data));
-            bing_load(index);
-        } else {
-            handleError('Bing 获取失败');
-        }
-    }
-    xhr.onerror = handleError;
-    xhr.send();
+    console.log(`网易新闻源：An error occurred \uD83D\uDE1E ${e}`);
 }
 
 
@@ -222,57 +198,6 @@ function days_load (show_only) {
     }
 }
 
-function bing_click (){
-    // 打开新窗口
-    window.open(document.getElementById('bing').src.split('_1920x1080.jpg')[0] + '_UHD.jpg');
-}
-
-cache_admin();
-function cache_admin() {
-    // 查看 LocalStorage 是否有日期
-    if (localStorage.getItem('bing_cache')) {
-        const cache = localStorage.getItem('bing_cache');
-        // 获取当前时间
-        const date = new Date();
-        if (date - cache > 60*60*6*1000) {
-            // 超过一天就重新获取
-            get_bing_into_local_storage();
-            // 获取当前时间
-            const date_now = Date.now();
-            // 更新 LocalStorage
-            localStorage.setItem('bing_cache', date_now);
-        }else{
-            // 否则直接加载
-            bing_load(index);
-        }
-        
-    }else{
-        get_bing_into_local_storage();
-        // 获取当前时间
-        const date_now = Date.now();
-        // 更新 LocalStorage
-        localStorage.setItem('bing_cache', date_now);
-    }
-}
-
-
-function bing_load (index) {
-    // 从 localStorage 中获取 bing
-    const bing_data = JSON.parse(localStorage.getItem('bing'));
-    // 如果 index 比 bing_data['data'].length 大
-    if (index >= bing_data['data'].length) {
-        const times = Math.floor(index / bing_data['data'].length);
-        // 减去 index 的值
-        index_num = index - (bing_data['data'].length * times);
-    }else{
-        index_num = index;
-    }
-    // 加载 bing
-    const bing_url = "https://cn.bing.com" + bing_data["data"][index_num]["url"];
-    // 加载图片
-    document.getElementById('bing').src = bing_url;
-
-}
 
 function get_day_news(index, origin){
       try{
@@ -299,7 +224,6 @@ function after (){
         index -= 1;
         direction = 'before';
         get_day_news(index, origin);
-        bing_load(index);
     }
 }
 
@@ -310,7 +234,6 @@ function before (){
         index += 1;
         direction = 'after';
         get_day_news(index, origin);
-        bing_load(index);
     }
 }
 
